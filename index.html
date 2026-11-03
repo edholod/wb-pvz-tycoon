@@ -2535,7 +2535,7 @@ render();
 })();
 </script>
 <script>
-// v1.92: portable local backup. No automatic cloud overwrite.
+// v1.94: portable local backup with live-state import protection. No automatic cloud overwrite.
 (function(){
  const PREFIX='wbpvz-';
  const FORMAT='wb-pvz-tycoon-backup';
@@ -2603,6 +2603,19 @@ render();
    }catch(e){
     try{for(const k of keys)localStorage.removeItem(k);for(const [k,v] of Object.entries(old))localStorage.setItem(k,v)}catch(rollbackError){console.error('Не удалось восстановить исходное сохранение',rollbackError)}
     throw Error('Не хватило места в хранилище. Импорт отменён.');
+   }
+   // Keep the live game state consistent with the imported storage.
+   // Otherwise a pending render/save during navigation can overwrite the imported file.
+   s=structuredClone(main);
+   if(data['wbpvz-portfolio-v134']){
+    pvz34=JSON.parse(data['wbpvz-portfolio-v134']);
+    if(pvz34?.branches?.[pvz34.active]?.state){
+     s=structuredClone(pvz34.branches[pvz34.active].state);
+    }
+   }
+   // Verify that the imported values actually reached localStorage.
+   for(const [k,v] of Object.entries(data)){
+    if(localStorage.getItem(k)!==v)throw Error('Проверка записи сохранения не пройдена: '+k);
    }
    alert('Сохранение восстановлено. Игра перезапустится.');
    location.reload();
