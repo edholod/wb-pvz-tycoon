@@ -2534,5 +2534,96 @@ render();
  render();
 })();
 </script>
+<script>
+// v1.92: portable local backup. No automatic cloud overwrite.
+(function(){
+ const PREFIX='wbpvz-';
+ const FORMAT='wb-pvz-tycoon-backup';
+ const REQUIRED='wbpvz-demo-v18';
+ const MAX_BYTES=12*1024*1024;
+ function allData(){
+  const data={};
+  // Flush active branch and base state before snapshot.
+  try{if(typeof save==='function')save()}catch(e){console.warn('Backup save',e)}
+  try{if(typeof pvz34Save==='function')pvz34Save()}catch(e){console.warn('Backup network save',e)}
+  for(let i=0;i<localStorage.length;i++){
+   const key=localStorage.key(i);
+   if(key&&key.startsWith(PREFIX))data[key]=localStorage.getItem(key);
+  }
+  if(!data[REQUIRED])throw Error('Не найдено основное сохранение игры.');
+  return data;
+ }
+ function filename(){return 'name.pizda'}
+ function download(blob,name){
+  const url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download=name;a.style.display='none';document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),60000);
+ }
+ window.wb192Export=async function(){
+  try{
+   const payload={format:FORMAT,version:1,createdAt:new Date().toISOString(),data:allData()};
+   const blob=new Blob([JSON.stringify(payload)],{type:'application/octet-stream'});
+   const name=filename();
+   // On iOS Telegram, native sharing is often more reliable than browser download.
+   if(navigator.canShare&&navigator.share){
+    const file=new File([blob],name,{type:'application/octet-stream'});
+    if(navigator.canShare({files:[file]})){
+     try{await navigator.share({files:[file],title:'Резервная копия WB PVZ TYCOON'});return}
+     catch(e){if(e.name==='AbortError')return}
+    }
+   }
+   download(blob,name);
+   alert('Файл резервной копии подготовлен. Сохрани его в «Файлы» или отправь себе в Telegram.');
+  }catch(e){alert('Не удалось экспортировать сохранение: '+e.message)}
+ };
+ window.wb192ImportOpen=function(){
+  const input=document.getElementById('wb192-file');if(input){input.value='';input.click()}
+ };
+ window.wb192Import=async function(input){
+  const file=input.files&&input.files[0];if(!file)return;
+  try{
+   if(file.size>MAX_BYTES)throw Error('Файл слишком большой (более 12 МБ).');
+   const parsed=JSON.parse(await file.text());
+   if(!parsed||parsed.format!==FORMAT||parsed.version!==1||!parsed.data||typeof parsed.data!=='object'||Array.isArray(parsed.data))throw Error('Это не резервная копия WB PVZ TYCOON.');
+   const data=parsed.data,keys=Object.keys(data);
+   if(!keys.length||keys.length>200||!Object.hasOwn(data,REQUIRED))throw Error('В архиве отсутствует основное сохранение.');
+   for(const key of keys){
+    if(!/^wbpvz-[a-z0-9-]{1,100}$/.test(key)||typeof data[key]!=='string')throw Error('Некорректные данные сохранения.');
+    JSON.parse(data[key]);
+   }
+   const main=JSON.parse(data[REQUIRED]);
+   if(!main||typeof main!=='object'||!Number.isFinite(main.balance)||!Number.isFinite(main.gameMinute))throw Error('Основной прогресс повреждён.');
+   const date=parsed.createdAt?new Date(parsed.createdAt).toLocaleString('ru-RU'):'неизвестна';
+   if(!confirm('Импортировать сохранение от '+date+'? Текущий прогресс на этом устройстве будет заменён. Перед продолжением рекомендуем экспортировать его.'))return;
+   // Snapshot existing state for rollback if browser storage fails.
+   const old={};for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith(PREFIX))old[k]=localStorage.getItem(k)}
+   try{
+    for(const k of Object.keys(old))localStorage.removeItem(k);
+    for(const [k,v] of Object.entries(data))localStorage.setItem(k,v);
+   }catch(e){
+    try{for(const k of keys)localStorage.removeItem(k);for(const [k,v] of Object.entries(old))localStorage.setItem(k,v)}catch(rollbackError){console.error('Не удалось восстановить исходное сохранение',rollbackError)}
+    throw Error('Не хватило места в хранилище. Импорт отменён.');
+   }
+   alert('Сохранение восстановлено. Игра перезапустится.');
+   location.reload();
+  }catch(e){alert('Не удалось импортировать сохранение: '+e.message)}
+ };
+ const previousRender=render;
+ render=function(){
+  const result=previousRender.apply(this,arguments);
+  if(tab==='Настройки'){
+   const content=document.getElementById('content');
+   if(content){
+    const card=document.createElement('div');card.className='card';
+    card.innerHTML='<h2>Резервная копия прогресса</h2><p class="p46-note">Сохрани прогресс в файл, чтобы перенести его на другое устройство. Сначала экспортируй сохранение с телефона, затем импортируй на компьютере.</p><div class="actions"><button type="button" class="primary" onclick="wb192Export()">Экспорт сохранения</button><button type="button" onclick="wb192ImportOpen()">Импорт сохранения</button></div><input id="wb192-file" type="file" accept=".pizda,.json,application/json,application/octet-stream" style="display:none" onchange="wb192Import(this)"><p class="p46-note">Импорт заменяет прогресс только на текущем устройстве. Автоматической синхронизации пока нет.</p>';
+    const danger=content.querySelector('.ui149-danger');
+    if(danger)danger.before(card);else content.appendChild(card);
+   }
+  }
+  return result;
+ };
+ render();
+})();
+</script>
 </body></html>
 <!-- v1.77: one employee per PVZ shift, streamlined dashboard -->

@@ -1,0 +1,179 @@
+{
+  "version": "1.3.0",
+  "disclaimer": "Игровые параметры, не официальные тарифы Wildberries",
+  "starting_balance_rub": 500000,
+  "time": {
+    "real_minutes_per_game_day": 24,
+    "game_days_per_month": 30
+  },
+  "opening": {
+    "rent_min": 20000,
+    "rent_max": 100000,
+    "rent_step": 5000,
+    "landlord_deposit_months": 1,
+    "first_month_prepayment": 1,
+    "wb_security_deposit": 50000,
+    "other": 20000,
+    "renovation": {
+      "economy": 95000,
+      "standard": 155000,
+      "premium": 230000
+    },
+    "equipment": {
+      "economy": 45000,
+      "standard": 75000,
+      "premium": 115000
+    }
+  },
+  "operations": {
+    "employee_shift_base": 2800,
+    "emergency_replacement_shift": 4500,
+    "utilities_month": 8000,
+    "internet_month": 1500,
+    "consumables_per_order": 3,
+    "tax_rate_placeholder": null,
+    "wb_tariff_placeholder": null
+  },
+  "simulation": {
+    "seeded_random_events": true,
+    "offline_decisions": "use_preconfigured_rules",
+    "no_show_causes": [
+      "illness",
+      "absence",
+      "alcohol_related",
+      "family_emergency"
+    ],
+    "events": [
+      "employee_no_show",
+      "delivery_delay",
+      "lost_item",
+      "customer_complaint",
+      "power_outage",
+      "camera_failure",
+      "scanner_failure",
+      "fine_dispute",
+      "staff_resignation",
+      "rent_increase",
+      "warehouse_overflow",
+      "stock_misplacement",
+      "inventory_search",
+      "warehouse_assistant_needed",
+      "customer_review",
+      "rating_drop",
+      "reputation_bonus"
+    ]
+  },
+  "warehouse": {
+    "initial_capacity_units": 300,
+    "occupancy_thresholds_pct": {
+      "comfortable": 70,
+      "busy": 85,
+      "full": 100
+    },
+    "expansion": {
+      "capacity_added_units": 150,
+      "price_rub": 45000,
+      "requires_space_check": true
+    },
+    "overcapacity_increases_misplacement_risk": true,
+    "risk_depends_on": [
+      "occupancy",
+      "worker_load",
+      "skill",
+      "shelf_quality",
+      "inventory_controls"
+    ],
+    "lost_items_require_investigation_before_writeoff": true,
+    "writeoff_only_after_game_rules_confirm_liability": true,
+    "inventory_actions": [
+      "search",
+      "inventory_count",
+      "review_cameras",
+      "dispute_writeoff"
+    ]
+  },
+  "staffing": {
+    "warehouse_assistant": {
+      "shift_cost_rub": 2200,
+      "monthly_cost_rub": 45000,
+      "reduces_workload_and_errors": true,
+      "cannot_replace_physical_capacity": true
+    },
+    "workload_factors": [
+      "incoming_orders",
+      "outgoing_orders",
+      "returns",
+      "occupancy",
+      "employees_on_shift"
+    ]
+  },
+  "reviews": {
+    "average_reviews_per_game_hour": 1,
+    "generation": "stochastic_weighted_by_customer_volume",
+    "types": [
+      "positive",
+      "negative",
+      "funny",
+      "absurd",
+      "unfair",
+      "mixed"
+    ],
+    "rating_scale": [
+      1,
+      5
+    ],
+    "moderation_and_appeal": true,
+    "duplicate_spam_controls": true,
+    "review_history_persistent": true,
+    "rating_drivers": [
+      "wait_time",
+      "service_quality",
+      "order_accuracy",
+      "cleanliness",
+      "hours_reliability",
+      "customer_incidents"
+    ],
+    "sample_reviews": [
+      "Пакет выдали быстро, а настроение осталось на складе.",
+      "Пять звёзд за кота у входа. Кота не было.",
+      "Забрал заказ, но почему музыка грустная?"
+    ]
+  },
+  "reputation": {
+    "rating_impacts": [
+      "customer_retention",
+      "demand",
+      "in_game_bonus_eligibility"
+    ],
+    "game_tariff_bonus": {
+      "enabled": true,
+      "fictional_mechanic": true,
+      "not_official_wb_rule": true,
+      "rating_min_for_bonus": 4.7,
+      "bonus_percentage_points_max": 0.5,
+      "requires_service_quality_and_no_critical_violations": true
+    },
+    "avoid_unverified_claims_about_official_wb_tariffs": true
+  },
+  "equipment_system": {
+    "catalog_file": "equipment.json",
+    "individual_purchase_and_upgrade": true,
+    "condition_and_wear": true,
+    "repair": true,
+    "transaction_history": true,
+    "warehouse_space_limit": true,
+    "effects_calculated_by": "engine.py",
+    "legacy_opening_equipment_bundles": "prototype_only_do_not_double_charge"
+  },
+  "logistics_system": {
+    "module": "logistics.py",
+    "individual_parcel_tracking": true,
+    "receiving_and_issue": true,
+    "returns": true,
+    "misplacement_probability_depends_on_load": true,
+    "assistant_reduces_risk": true,
+    "investigation_before_writeoff": true,
+    "automatic_order_stream": "planned",
+    "hourly_scheduler": "planned"
+  }
+}
