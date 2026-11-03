@@ -2187,7 +2187,10 @@ case175Migrate();render();
 <script type="application/x-wbpvz">
 // v1.76: one compact overview; secondary home panels stay available under a disclosure.
 const home176PreviousRender=render;
+let home199DetailsOpen=false;
 render=function(){
+ const previousDetails=document.querySelector("#content .home176-details");
+ if(previousDetails)home199DetailsOpen=previousDetails.open;
  const result=home176PreviousRender.apply(this,arguments);
  if(tab!=='Главная'||!s.opened)return result;
  const root=document.getElementById('content');if(!root)return result;
@@ -2203,6 +2206,7 @@ render=function(){
  const keep=/^(Происшествия|Спорные товары)/i;
  const details=document.createElement('details');details.className='card home176-details';
  details.innerHTML='<summary>Другие показатели и события</summary><div></div>';
+ details.open=home199DetailsOpen;
  const holder=details.querySelector('div');
  for(const card of Array.from(root.children)){
   if(card===dashboard||card===details||!card.classList.contains('card'))continue;
