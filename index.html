@@ -1222,7 +1222,7 @@ function priv47All(v){
 }
 function priv47Settings(){
  const rows=PRIV47_FIELDS.map(([key,title,desc])=>`<div class="privacy47-option"><label for="privacy47-${key}">${title}<small>${desc}</small></label><input type="checkbox" id="privacy47-${key}" ${priv47Show(key)?'checked':''} onchange="priv47Save('${key}',this.checked)" aria-label="Показывать ${title}"></div>`).join('');
- return box('Настройки приватности',`<p>Выбери, какие данные смогут видеть другие игроки, когда появятся публичные профили. <b>По умолчанию открыто всё.</b></p><div class="between"><button onclick="priv47All(false)">Скрыть всё</button><button onclick="priv47All(true)">Показать всё</button></div>${rows}<p class="p46-note">Эти настройки сохраняются только в данном браузере. Сейчас нет сервера публичных профилей, поэтому данные не передаются другим игрокам. При подключении сервера потребуется применить эти ограничения на серверной стороне.</p><button class="primary" onclick="tab='Публичный вид';render()">Посмотреть профиль глазами других</button>`)
+ return box('Настройки приватности',`<p>Выбери, какие данные смогут видеть другие игроки, в публичном представлении. <b>По умолчанию открыто всё.</b></p><div class="between"><button onclick="priv47All(false)">Скрыть всё</button><button onclick="priv47All(true)">Показать всё</button></div>${rows}<p class="p46-note">Настройки синхронизируются вместе с прогрессом. В рейтинге учитываются видимость имени и опыта; при скрытом опыте ты не участвуешь в списке. Баланс, адреса, фотография и ссылка Telegram в рейтинг не передаются.</p><button class="primary" onclick="tab='Публичный вид';render()">Посмотреть профиль глазами других</button>`)
  +box('Настройки аккаунта',`<p class="p46-note">Изменение имени и Telegram-ника доступно в разделе «Профиль». Настройки приватности не скрывают информацию от тебя самого внутри игры.</p><button onclick="tab='Профиль';render()">Открыть мой профиль</button>`);
 }
 function priv47Preview(){
@@ -2458,7 +2458,7 @@ render();
  const ENDPOINT='https://duerixyhzapotoeclggz.supabase.co/functions/v1/game-leaderboard';
  const PUBLIC_KEY='sb_publishable_fKE2S2rAz7VMa54rgO4uvQ_vyzFPwmV';
  UI149_GROUPS['Паспорт'].push(['Рейтинг игроков','★','Общий рейтинг Telegram']);
- let period='all',status='idle',entries=[],errorText='',requestId=0;
+ let period='all',status='idle',entries=[],errorText='',requestId=0,myRank=null,rankHidden=false;
  const periods={week:'Неделя',month:'Месяц',all:'Всё время'};
  function initData(){
   const tg=window.Telegram&&window.Telegram.WebApp;
@@ -2471,10 +2471,11 @@ render();
   const el=document.getElementById('rank190-results');if(!el)return;
   if(status==='loading'){el.innerHTML='<p>Загружаем рейтинг…</p>';return}
   if(status==='error'){el.innerHTML='<p class="rank190-note">'+safe(errorText)+'</p>';return}
-  if(!entries.length){el.innerHTML='<p class="rank190-note">Пока нет опубликованных результатов за этот период.</p>';return}
-  el.innerHTML=entries.map((x,i)=>{
+  const personal=myRank?'<p><b>Твоё место: '+safe(myRank.place)+' · '+safe(Number(myRank.score).toLocaleString('ru-RU'))+' XP</b></p>':rankHidden?'<p>Ты скрыл опыт в настройках и не участвуешь в рейтинге.</p>':'<p>Твоего результата пока нет. Он появится после первого облачного сохранения.</p>';
+  if(!entries.length){el.innerHTML=personal+'<p class="rank190-note">Пока нет опубликованных результатов за этот период.</p>';return}
+  el.innerHTML=personal+entries.map((x,i)=>{
    const name=x.display_name||x.username||x.name||('Игрок '+String(x.telegram_id||'').slice(-4));
-   return '<div class="rank190-line"><strong>'+(i+1)+'</strong><div><b>'+safe(name)+'</b><small>Уровень '+safe(x.player_level??'—')+' · ПВЗ '+safe(x.pvz_count??'—')+'</small></div><strong>'+safe(Number(x.score||0).toLocaleString('ru-RU'))+'</strong></div>';
+   return '<div class="rank190-line"><strong>'+safe(x.place??(i+1))+'</strong><div><b>'+safe(name)+(x.is_me?' · ты':'')+'</b><small>Уровень '+safe(x.player_level??'—')+' · ПВЗ '+safe(x.pvz_count??'—')+'</small></div><strong>'+safe(Number(x.score||0).toLocaleString('ru-RU'))+' XP</strong></div>';
   }).join('');
  }
  async function load(){
@@ -2485,7 +2486,7 @@ render();
    const r=await fetch(ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json','apikey':PUBLIC_KEY,'Authorization':'Bearer '+PUBLIC_KEY},body:JSON.stringify({action:'leaderboard',initData:auth,period,category:'overall'})});
    const result=await r.json();if(id!==requestId)return;
    if(!r.ok)throw Error(result.error||'Ошибка '+r.status);
-   entries=Array.isArray(result.leaderboard)?result.leaderboard:[];status='ready';
+   entries=Array.isArray(result.leaderboard)?result.leaderboard:[];myRank=result.my_rank||null;rankHidden=!!result.hidden;status='ready';
   }catch(e){if(id!==requestId)return;status='error';errorText='Не удалось загрузить рейтинг: '+(e.message||'ошибка сети')}
   show();
  }
@@ -2496,7 +2497,7 @@ render();
   const result=oldRender.apply(this,arguments);
   if(tab!=='Рейтинг игроков')return result;
   const root=document.getElementById('content');if(!root)return result;
-  root.innerHTML='<div class="card"><h2>★ Общий рейтинг игроков</h2><p class="rank190-note">Рейтинг игроков WB PVZ TYCOON. Данные загружаются с сервера Supabase.</p><div class="rank190-controls">'+Object.entries(periods).map(([k,label])=>'<button type="button" class="'+(k===period?'active':'')+'" onclick="rank190Period(\''+k+'\')">'+label+'</button>').join('')+'</div><div id="rank190-results"></div><p><button type="button" onclick="rank190Refresh()">Обновить</button></p><p class="rank190-note">Публикация результатов и личное место появятся после включения проверяемой серверной записи. Игровой прогресс на устройстве не изменяется.</p></div>';
+  root.innerHTML='<div class="card"><h2>★ Общий рейтинг игроков</h2><p class="rank190-note">Рейтинг по XP. Результат обновляется после облачного сохранения.</p><div class="rank190-controls">'+Object.entries(periods).map(([k,label])=>'<button type="button" class="'+(k===period?'active':'')+'" onclick="rank190Period(\''+k+'\')">'+label+'</button>').join('')+'</div><div id="rank190-results"></div><p><button type="button" onclick="rank190Refresh()">Обновить</button></p><p class="rank190-note">За неделю и месяц показывается максимум XP, зафиксированный в этот период (UTC). Рейтинг предварительный: опыт пока рассчитывается на устройстве. При равном XP место общее.</p></div>';
   show();return result;
  };
  const oldGo=ui149Go;
