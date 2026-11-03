@@ -2449,5 +2449,90 @@ render();
  ledgerInit();render();
 })();
 </script>
+<style>
+.rank190-controls{display:flex;gap:7px;flex-wrap:wrap;margin:12px 0}.rank190-controls button{border:1px solid #e5d9ed;border-radius:10px;padding:10px 12px;background:#fff;color:#71349b}.rank190-controls button.active{background:#7d23b5;color:white}.rank190-line{display:grid;grid-template-columns:35px minmax(0,1fr) auto;gap:10px;align-items:center;padding:12px 3px;border-bottom:1px solid #f0e8f2}.rank190-line b{overflow-wrap:anywhere}.rank190-line small{display:block;color:#84758a}.rank190-note{font-size:13px;line-height:1.5;color:#6f6174}
+</style>
+<script>
+// v1.90: read-only, authenticated cross-player leaderboard. No unverified score submissions.
+(function(){
+ const ENDPOINT='https://duerixyhzapotoeclggz.supabase.co/functions/v1/game-leaderboard';
+ const PUBLIC_KEY='sb_publishable_fKE2S2rAz7VMa54rgO4uvQ_vyzFPwmV';
+ UI149_GROUPS['Паспорт'].push(['Рейтинг игроков','★','Общий рейтинг Telegram']);
+ let period='all',status='idle',entries=[],errorText='',requestId=0;
+ const periods={week:'Неделя',month:'Месяц',all:'Всё время'};
+ function initData(){
+  const tg=window.Telegram&&window.Telegram.WebApp;
+  if(tg&&typeof tg.initData==='string'&&tg.initData)return tg.initData;
+  return '';
+ }
+ function safe(v){return typeof pvzSafe==='function'?pvzSafe(String(v??'')):String(v??'').replace(/[&<>"']/g,'');}
+ function show(){
+  if(tab!=='Рейтинг игроков')return;
+  const el=document.getElementById('rank190-results');if(!el)return;
+  if(status==='loading'){el.innerHTML='<p>Загружаем рейтинг…</p>';return}
+  if(status==='error'){el.innerHTML='<p class="rank190-note">'+safe(errorText)+'</p>';return}
+  if(!entries.length){el.innerHTML='<p class="rank190-note">Пока нет опубликованных результатов за этот период.</p>';return}
+  el.innerHTML=entries.map((x,i)=>{
+   const name=x.display_name||x.username||x.name||('Игрок '+String(x.telegram_id||'').slice(-4));
+   return '<div class="rank190-line"><strong>'+(i+1)+'</strong><div><b>'+safe(name)+'</b><small>Уровень '+safe(x.player_level??'—')+' · ПВЗ '+safe(x.pvz_count??'—')+'</small></div><strong>'+safe(Number(x.score||0).toLocaleString('ru-RU'))+'</strong></div>';
+  }).join('');
+ }
+ async function load(){
+  const auth=initData();const id=++requestId;
+  if(!auth){status='error';errorText='Рейтинг доступен при запуске игры из Telegram через кнопку мини-приложения. В обычном браузере Telegram не передаёт данные входа.';show();return}
+  status='loading';show();
+  try{
+   const r=await fetch(ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json','apikey':PUBLIC_KEY,'Authorization':'Bearer '+PUBLIC_KEY},body:JSON.stringify({action:'leaderboard',initData:auth,period,category:'overall'})});
+   const result=await r.json();if(id!==requestId)return;
+   if(!r.ok)throw Error(result.error||'Ошибка '+r.status);
+   entries=Array.isArray(result.leaderboard)?result.leaderboard:[];status='ready';
+  }catch(e){if(id!==requestId)return;status='error';errorText='Не удалось загрузить рейтинг: '+(e.message||'ошибка сети')}
+  show();
+ }
+ window.rank190Period=function(next){if(!periods[next])return;period=next;entries=[];render();load()};
+ window.rank190Refresh=function(){load()};
+ const oldRender=render;
+ render=function(){
+  const result=oldRender.apply(this,arguments);
+  if(tab!=='Рейтинг игроков')return result;
+  const root=document.getElementById('content');if(!root)return result;
+  root.innerHTML='<div class="card"><h2>★ Общий рейтинг игроков</h2><p class="rank190-note">Рейтинг игроков WB PVZ TYCOON. Данные загружаются с сервера Supabase.</p><div class="rank190-controls">'+Object.entries(periods).map(([k,label])=>'<button type="button" class="'+(k===period?'active':'')+'" onclick="rank190Period(\''+k+'\')">'+label+'</button>').join('')+'</div><div id="rank190-results"></div><p><button type="button" onclick="rank190Refresh()">Обновить</button></p><p class="rank190-note">Публикация результатов и личное место появятся после включения проверяемой серверной записи. Игровой прогресс на устройстве не изменяется.</p></div>';
+  show();return result;
+ };
+ const oldGo=ui149Go;
+ ui149Go=function(target){const result=oldGo.apply(this,arguments);if(target==='Рейтинг игроков')load();return result};
+})();
+</script>
+
+<style>
+/* v1.91: dedicated fifth bottom navigation tab for the global leaderboard. */
+#tabs.tabs{grid-template-columns:repeat(5,minmax(0,1fr))!important}
+#tabs.tabs>button{min-width:0!important;max-width:none!important;width:100%!important}
+@media(max-width:380px){#tabs.tabs button{font-size:10px!important}}
+</style>
+<script>
+// v1.91: Rating is a top-level destination, not a Passport subpage.
+(function(){
+ UI149_GROUPS['Паспорт']=(UI149_GROUPS['Паспорт']||[]).filter(item=>item[0]!=='Рейтинг игроков');
+ UI149_GROUPS['Рейтинг']=[];
+ UI149_ICONS['Рейтинг']='★';
+ const previousGroupFor=ui149GroupFor;
+ ui149GroupFor=function(t){return t==='Рейтинг'||t==='Рейтинг игроков'?'Рейтинг':previousGroupFor(t)};
+ const previousGo=ui149Go;
+ ui149Go=function(target){return previousGo(target==='Рейтинг'?'Рейтинг игроков':target)};
+ const previousRender=render;
+ render=function(){
+  const result=previousRender.apply(this,arguments);
+  const nav=document.getElementById('tabs');
+  if(!nav)return result;
+  const current=ui149GroupFor(tab);
+  const names=['Главная','ПВЗ','Бизнес','Рейтинг','Паспорт'];
+  nav.innerHTML=names.map(name=>'<button class="'+(current===name?'active':'')+'" aria-label="'+name+'" aria-current="'+(current===name?'page':'false')+'" onclick="ui149Go(\''+name+'\')"><span class="nav149-icon" aria-hidden="true">'+UI149_ICONS[name]+'</span><span>'+name+'</span></button>').join('');
+  nav.style.gridTemplateColumns='repeat(5,minmax(0,1fr))';
+  return result;
+ };
+ render();
+})();
+</script>
 </body></html>
 <!-- v1.77: one employee per PVZ shift, streamlined dashboard -->
