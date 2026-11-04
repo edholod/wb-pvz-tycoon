@@ -1980,7 +1980,7 @@ ui149Go=function(target){
 };
 ui149Landing=function(group){
  const entries=UI149_GROUPS[group]||[];
- return `<div class="ui149-grid">${entries.map(([name,icon])=>`<button class="ui149-tile" onclick="ui149Go('${name}')"><span class="ui149-ico" aria-hidden="true">${icon}</span><b>${name}</b></button>`).join('')}</div>`;
+ return `<div class="ui149-grid">${entries.map(([name,icon])=>`<button class="ui149-tile" onclick="ui149Go('${name}')"><span class="ui149-ico" aria-hidden="true">${ui204TileIcon(name)}</span><b>${name}</b></button>`).join('')}</div>`;
 };
 const ui168PreviousRender=render;
 render=function(){
