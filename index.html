@@ -1306,7 +1306,7 @@ button{min-height:38px;border-radius:10px;transition:background .15s}button:focu
 .tabs button .nav149-icon{font-size:19px;line-height:22px}
 .tabs button .nav149-svg{width:23px;height:23px;display:block;stroke:currentColor;flex-shrink:0}
 .ui149-breadcrumb{display:flex;align-items:center;gap:7px;margin:2px 0 12px;font-size:13px;color:#756980}.ui149-breadcrumb button{border:0;background:transparent;padding:0;color:#7b35a5;min-height:28px}
-.ui149-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.ui149-tile{background:white;border:1px solid var(--ui-border);border-radius:15px;padding:15px;text-align:left;min-height:104px;display:flex;flex-direction:column;align-items:flex-start;gap:7px;white-space:normal}.ui149-tile .ui149-ico{font-size:23px}.ui149-tile b{font-size:14px}.ui149-tile small{color:var(--ui-muted);font-size:11px;line-height:1.4}
+.ui149-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.ui149-tile{background:white;border:1px solid var(--ui-border);border-radius:15px;padding:15px;text-align:left;min-height:104px;display:flex;flex-direction:column;align-items:flex-start;gap:7px;white-space:normal}.ui149-tile .ui149-ico{font-size:23px;display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;color:#7d2da8}.ui204-tile-svg{width:25px;height:25px;display:block;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.ui149-tile b{font-size:14px}.ui149-tile small{color:var(--ui-muted);font-size:11px;line-height:1.4}
 .ui149-summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.ui149-summary>div{border:1px solid var(--ui-border);border-radius:13px;padding:12px;background:#fff}.ui149-summary small{display:block;color:var(--ui-muted)}.ui149-summary b{display:block;font-size:17px;margin-top:5px;overflow-wrap:anywhere}
 .ui149-hint{padding:12px;border-radius:12px;background:#f6eef9;color:#6e467b;font-size:12px;line-height:1.5;margin-bottom:12px}.ui149-danger{border:1px solid #eac7c7;border-radius:12px;padding:14px}.ui149-danger button{color:#9b3232;border-color:#dfaaaa}
 @media(max-width:380px){main{padding-left:10px;padding-right:10px}.ui149-grid{gap:7px}.ui149-tile{padding:11px}.tabs button{font-size:10px!important}.brand143 img{width:66px}}
@@ -1319,6 +1319,9 @@ const UI149_GROUPS={
  'Паспорт':[['Профиль','◉','Данные и результаты'],['Коллекции','◇','Секретные карточки'],['Задания','✓','Цели и достижения'],['Ускорение','⚡','Награды за задания']],
  'Ещё':[['Настройки','⚙','Приватность и аккаунт'],['Уведомления','♧','Новости и события'],['Публичный вид','◉','Как видят профиль другие']]
 };
+const UI204_TILE_ICON_MAP={"Зависшие": "clock", "Браки": "shield", "Подмены": "swap", "Склад": "shelves", "Сотрудники": "users", "Оборудование": "monitor", "Календарь": "calendar", "Качество": "sparkles", "Отзывы": "star", "Проверки": "shield", "Жизнь ПВЗ": "home", "Партнёры": "partners", "Сеть ПВЗ": "warehouse", "Отчёты": "chart", "Развитие": "chart", "Профиль": "profile", "Коллекции": "collection", "Задания": "check", "Ускорение": "bolt", "Настройки": "settings", "Уведомления": "bell", "Публичный вид": "profile"};
+const UI204_EXTRA_ICONS={"clock": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 7v5l3 2\"/>", "swap": "<path d=\"M4 7h16m-4-4 4 4-4 4M20 17H4m4-4-4 4 4 4\"/>", "partners": "<path d=\"M3 8 8 4l4 3 4-3 5 4-5 5-4-2-4 2zM3 8v7l5 5 4-3 4 3 5-5V8M8 13l4 4 4-4\"/>", "profile": "<circle cx=\"12\" cy=\"8\" r=\"4\"/><path d=\"M4 21a8 8 0 0 1 16 0\"/>", "collection": "<rect x=\"3\" y=\"4\" width=\"13\" height=\"16\" rx=\"2\"/><path d=\"M8 8h4M8 12h4M19 7h2v13a2 2 0 0 1-2 2H8\"/>", "check": "<rect x=\"4\" y=\"3\" width=\"16\" height=\"18\" rx=\"2\"/><path d=\"m8 12 3 3 5-6\"/>", "bolt": "<path d=\"m13 2-9 12h7l-1 8 10-12h-7z\"/>", "settings": "<circle cx=\"12\" cy=\"12\" r=\"3\"/><path d=\"M12 2v3m0 14v3M2 12h3m14 0h3M5 5l2 2m10 10 2 2M19 5l-2 2M7 17l-2 2\"/>"};
+function ui204TileIcon(title){const name=UI204_TILE_ICON_MAP[title]||"home";return UI204_EXTRA_ICONS[name]?`<svg class="ui204-tile-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${UI204_EXTRA_ICONS[name]}</svg>`:pvzIcon(name,"ui204-tile-svg");}
 const UI149_ICONS={
  'Главная':pvzIcon('home','nav149-svg'),
  'ПВЗ':pvzIcon('warehouse','nav149-svg'),
@@ -1330,7 +1333,7 @@ function ui149GroupFor(t){if(UI149_GROUPS[t])return t;for(const [g,items] of Obj
 function ui149Go(t){tab=t;render();window.scrollTo({top:0,behavior:'instant'})}
 function ui149Landing(g){
  const entries=UI149_GROUPS[g]||[];
- const tiles=entries.map(([t,icon,desc])=>`<button class="ui149-tile" onclick="ui149Go('${t}')"><span class="ui149-ico" aria-hidden="true">${icon}</span><b>${t}</b><small>${desc}</small></button>`).join('');
+ const tiles=entries.map(([t,icon,desc])=>`<button class="ui149-tile" onclick="ui149Go('${t}')"><span class="ui149-ico" aria-hidden="true">${ui204TileIcon(t)}</span><b>${t}</b><small>${desc}</small></button>`).join('');
  return `<div class="card"><h2>${g}</h2><p class="ui149-hint">Выбери раздел, чтобы открыть нужные инструменты.</p><div class="ui149-grid">${tiles}</div></div>`;
 }
 function ui149Home(){
@@ -1338,7 +1341,7 @@ function ui149Home(){
  const staff=typeof activeStaff==='function'?activeStaff(dayIndex()).length:0;
  const w=typeof weather39==='function'?weather39():null;
  const pending=(s.incidents||[]).length;
- return `<div class="card"><h2>Быстрый обзор</h2><div class="ui149-summary"><div><small>Баланс</small><b>${money(s.balance)}</b></div><div><small>На смене</small><b>${staff} чел.</b></div><div><small>Товары на складе</small><b>${s.stock||0} / ${s.capacity||0}</b></div><div><small>Требуют внимания</small><b>${pending} событий</b></div></div><p class="ui149-hint" style="margin-top:12px">Игровое время: ${stamp()} · ${s.pvzAddress?pvzSafe(s.pvzAddress):'Адрес не указан'}</p><div class="ui149-grid"><button class="ui149-tile" onclick="ui149Go('Склад')"><span class="ui149-ico">▤</span><b>Открыть склад</b><small>Приёмка и хранение</small></button><button class="ui149-tile" onclick="ui149Go('Сотрудники')"><span class="ui149-ico">♙</span><b>Сотрудники</b><small>Смены и обучение</small></button></div></div>`;
+ return `<div class="card"><h2>Быстрый обзор</h2><div class="ui149-summary"><div><small>Баланс</small><b>${money(s.balance)}</b></div><div><small>На смене</small><b>${staff} чел.</b></div><div><small>Товары на складе</small><b>${s.stock||0} / ${s.capacity||0}</b></div><div><small>Требуют внимания</small><b>${pending} событий</b></div></div><p class="ui149-hint" style="margin-top:12px">Игровое время: ${stamp()} · ${s.pvzAddress?pvzSafe(s.pvzAddress):'Адрес не указан'}</p><div class="ui149-grid"><button class="ui149-tile" onclick="ui149Go('Склад')"><span class="ui149-ico">${ui204TileIcon("Склад")}</span><b>Открыть склад</b><small>Приёмка и хранение</small></button><button class="ui149-tile" onclick="ui149Go('Сотрудники')"><span class="ui149-ico">${ui204TileIcon("Сотрудники")}</span><b>Сотрудники</b><small>Смены и обучение</small></button></div></div>`;
 }
 const ui149OldRender=render;
 render=function(){
@@ -1571,7 +1574,7 @@ render();
 .case159-total{background:#f5ecfa;border:1px solid #e8d6f1;border-radius:13px;padding:14px;margin:10px 0}.case159-total small{display:block;color:#74667b;font-size:12px;margin-bottom:5px}.case159-total strong{font-size:24px;color:#712c8f}.case159-top{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:12px}.case159-top div{background:#f8f4fa;border:1px solid #ece1f0;border-radius:12px;padding:11px}.case159-top small{display:block}.case159-top strong{font-size:18px}.case159-card{border:1px solid #e9e1ec;border-radius:13px;padding:13px;margin:10px 0;background:#fff}.case159-card h3{font-size:14px;margin:0 0 7px}.case159-meta{color:#716777;font-size:12px;line-height:1.65}.case159-status{display:inline-block;padding:5px 9px;background:#f4eaf8;border-radius:20px;font-size:11px;color:#70258d}.case159-card button{margin-top:10px}.case159-warning{color:#ae4c24}.case159-help{background:#f8f4fa;border-radius:11px;padding:11px;font-size:12px;line-height:1.55}
 </style>
 <script type="application/x-wbpvz">
-// v1.59: fictional disputed goods. Per-branch storage, 30 game-day deadline,
+// v2.04: fictional disputed goods. Per-branch storage, 90 game-day deadline,
 // separate transactions for expired items, deterministic resolution after 2-5 hours.
 const CASE159_TYPES={stuck:{title:'Зависшие',one:'Зависший товар',cause:'Операция с товаром не завершилась в системе.'},defect:{title:'Браки',one:'Спорный брак',cause:'Получено уведомление о повреждении товара.'},swap:{title:'Подмены',one:'Подозрение на подмену',cause:'Обнаружено расхождение при проверке товара.'}};
 const CASE159_PRODUCTS=['Кроссовки','Смартфон','Куртка','Наушники','Пылесос','Сумка','Джинсы','Кофемашина','Платье','Умные часы','Рюкзак','Электрочайник','Игровая мышь','Фен','Толстовка','Колонка','Ботинки','Блендер','Монитор','Парфюм'];
@@ -1580,6 +1583,14 @@ function case159Init(){
  const x=s.case159;
  if(!Array.isArray(x.items))x.items=[];
  if(!Number.isFinite(x.serial))x.serial=0;
+ // One-time, non-destructive migration of pending cases to 90 GAME days.
+ // Closed cases are left unchanged; the cloud save retains this migration flag.
+ if(!x.deadlineV204){
+  for(const c of x.items){
+   if(c.status==='new' && Number.isFinite(Number(c.created))) c.deadline=Number(c.created)+90*1440;
+  }
+  x.deadlineV204=true;
+ }
  return x;
 }
 function case159Add(kind){
@@ -1588,14 +1599,14 @@ function case159Add(kind){
  const item=CASE159_PRODUCTS[Math.floor(Math.random()*CASE159_PRODUCTS.length)];
  const amount=Math.round((500+Math.random()*24500)/100)*100;
  const created=s.gameMinute;
- x.items.unshift({id:n,kind,name:item,code:'WB-'+String(Math.floor(Math.random()*900000000)+100000000),amount,created,createdReal:Date.now(),deadline:created+30*1440,status:'new',appealAt:null,finishAt:null});
+ x.items.unshift({id:n,kind,name:item,code:'WB-'+String(Math.floor(Math.random()*900000000)+100000000),amount,created,createdReal:Date.now(),deadline:created+90*1440,status:'new',appealAt:null,finishAt:null});
  if(x.items.length>300)x.items=x.items.filter(c=>c.status==='new'||c.status==='review').concat(x.items.filter(c=>c.status!=='new'&&c.status!=='review').slice(0,150));
- if(typeof notificationAdd==='function')notificationAdd('audit',CASE159_TYPES[kind].one,item+' · '+money(amount)+' · на оспаривание 30 игровых дней','case159:'+pvz34.active+':'+n,created);
+ if(typeof notificationAdd==='function')notificationAdd('audit',CASE159_TYPES[kind].one,item+' · '+money(amount)+' · на оспаривание 90 игровых дней','case159:'+pvz34.active+':'+n,created);
 }
 function case159Appeal(kind,id){
  const x=case159Init(),c=x.items.find(c=>c.id===id&&c.kind===kind);
  if(!c||c.status!=='new')return;
- if((c.createdReal?Date.now()>=c.createdReal+30*1440*60000:s.gameMinute>=c.deadline)){case159Advance();save();render();return}
+ if((s.gameMinute>=c.deadline)){case159Advance();save();render();return}
  c.status='review';c.appealAt=s.gameMinute;c.appealReal=Date.now();c.finishAt=s.gameMinute+(2+Math.floor(Math.random()*4))*60;delete c.finishReal;
  save();if(typeof pvz34Store==='function')pvz34Store();render();
 }
@@ -1603,9 +1614,9 @@ function case159Advance(){
  if(!s.opened)return;
  const x=case159Init();
  for(const c of x.items){
-  if(c.status==='new'&&(c.createdReal?Date.now()>=c.createdReal+30*1440*60000:s.gameMinute>=c.deadline)){
+  if(c.status==='new'&&(s.gameMinute>=c.deadline)){
    c.status='charged';c.closedAt=s.gameMinute;
-   tx(-c.amount,CASE159_TYPES[c.kind].one+' · списание по истечении 30 дней · '+c.code);
+   tx(-c.amount,CASE159_TYPES[c.kind].one+' · списание по истечении 90 игровых дней · '+c.code);
   }else if(c.status==='review'&&s.gameMinute>=c.finishAt){
    c.status='won';c.closedAt=s.gameMinute;
   }
@@ -1635,7 +1646,7 @@ function case159Page(kind){
   const details=c.status==='new'?`<span class="${days<=3?'case159-warning':''}">Осталось ${days} игровых дн. до списания</span>`:c.status==='review'?'Решение ожидается: '+stamp(c.finishAt):'Дело закрыто';
   return `<div class="case159-card"><div class="between"><h3>${pvzSafe(c.name)}</h3><b>${money(c.amount)}</b></div><span class="case159-status">${status}</span><div class="case159-meta">Код: ${pvzSafe(c.code)}<br>Получено: ${stamp(c.created)}<br>${details}</div>${c.status==='new'?`<button class="primary" onclick="case159Appeal('${kind}',${c.id})">Оспорить</button>`:''}</div>`;
  }).join('');
- return box(type.title,`<p class="case159-help">${type.cause} Выберите товар и нажмите «Оспорить» в течение <b>30 игровых дней</b>. Рассмотрение занимает от <b>2 до 5 игровых часов</b> и завершается успешно. Если срок истечёт без обращения, стоимость товара будет списана с баланса компании. Чем ниже навыки сотрудников, тем чаще возникают такие случаи.</p><div class="case159-total"><small>Общая сумма до успешного оспаривания</small><strong>${money(activeAmount)}</strong></div><div class="case159-top"><div><small>Ожидают</small><strong>${pending}</strong></div><div><small>В работе</small><strong>${reviewing}</strong></div><div><small>Списано</small><strong>${money(charged)}</strong></div></div>${row('Текущий ПВЗ',pvzSafe(s.pvzAddress||'Не открыт'))}${row('Всего дел',list.length)}`)
+ return box(type.title,`<p class="case159-help">${type.cause} Выберите товар и нажмите «Оспорить» в течение <b>90 игровых дней</b>. Рассмотрение занимает от <b>2 до 5 игровых часов</b> и завершается успешно. Если срок истечёт без обращения, стоимость товара будет списана с баланса компании. Чем ниже навыки сотрудников, тем чаще возникают такие случаи.</p><div class="case159-total"><small>Общая сумма до успешного оспаривания</small><strong>${money(activeAmount)}</strong></div><div class="case159-top"><div><small>Ожидают</small><strong>${pending}</strong></div><div><small>В работе</small><strong>${reviewing}</strong></div><div><small>Списано</small><strong>${money(charged)}</strong></div></div>${row('Текущий ПВЗ',pvzSafe(s.pvzAddress||'Не открыт'))}${row('Всего дел',list.length)}`)
  +box('Список товаров',cards||'<small>Пока спорных товаров нет. Они появляются случайно во время работы ПВЗ.</small>');
 }
 const case159OldTick=tickHour;
@@ -2169,7 +2180,7 @@ function case175Migrate(){
   if(!cases.items.some(c=>c.source175===source)){
    const amount=Number(e.cost)>0?Math.round(Number(e.cost)):Math.round((500+Math.random()*24500)/100)*100;
    const created=Number.isFinite(Number(e.t))?Number(e.t):s.gameMinute;
-   cases.items.unshift({id:++cases.serial,kind,name:e.title,code:'WB-'+String(Math.floor(Math.random()*900000000)+100000000),amount,created,createdReal:Date.now(),deadline:created+30*1440,status:'new',appealAt:null,finishAt:null,source175:source});
+   cases.items.unshift({id:++cases.serial,kind,name:e.title,code:'WB-'+String(Math.floor(Math.random()*900000000)+100000000),amount,created,createdReal:Date.now(),deadline:created+90*1440,status:'new',appealAt:null,finishAt:null,source175:source});
   }
   moved++;
  }
