@@ -1,3 +1,14 @@
+# WB PVZ TYCOON — v2.12 candidate (not published)
+
+Work in progress based on commit `470415b`. The live site has not been changed by this checkout.
+Read [release status](release/STATUS_v2.12_CANDIDATE.txt) before deployment. SQL migration, live Supabase verification, Telegram/device tests and long-run balance review remain required.
+
+The browser game is `index.html`, launched by `cloud-sync.js` after cloud restore. Edit `modules/release212.js` and `.css`, then run `python3 build-release.py` to embed the module. Do not reset saves or alter the ten-key cloud envelope.
+
+The historical Python prototype documentation follows; it does not describe the current browser engine.
+
+---
+
 # WB PVZ TYCOON — прототип экономики
 
 - `economy.json`: базовые настройки экономики, склада, отзывов и персонала.
