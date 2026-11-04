@@ -1118,7 +1118,31 @@ function c45Drop(chance){if(!s.opened||Math.random()>=chance)return;
 }
 // Each simulated game hour may award a card from actual processed deliveries/issuances.
 const c45PriorTick=tickHour;
-tickHour=function(){const before=s.daily?.[0],oldA=before?.arrivals||0,oldS=before?.served||0; c45PriorTick();const now=s.daily?.[0];if(now&&(now.arrivals>oldA||now.served>oldS))c45Drop(.11)};
+tickHour=function(){
+ // Count real processed orders across the midnight/day-record rollover.
+ const beforeDay=s.daily?.[0];
+ const beforeId=beforeDay?.day;
+ const oldA=Number(beforeDay?.arrivals)||0,oldS=Number(beforeDay?.served)||0;
+ c45PriorTick();
+ if(!s.opened)return;
+ const now=s.daily?.[0];
+ if(!now)return;
+ const sameDay=now.day===beforeId;
+ const processed=Math.max(0,(Number(now.arrivals)||0)-(sameDay?oldA:0))+
+                 Math.max(0,(Number(now.served)||0)-(sameDay?oldS:0));
+ // Each processed order can drop a collectible; pity guarantees a discovery
+ // after sustained activity. Do not generate cards merely for advancing time.
+ if(!processed)return;
+ c45.ordersSinceDrop=Math.max(0,Number(c45.ordersSinceDrop)||0);
+ for(let i=0;i<Math.min(processed,1000);i++){
+   c45.ordersSinceDrop++;
+   if(Math.random()<.06||c45.ordersSinceDrop>=40){
+     c45Drop(1);
+     c45.ordersSinceDrop=0;
+   }
+ }
+ c45Save();
+};
 function c45ClaimSet(si){if(c45.claimed[si]||c45Progress(si)<10)return;c45.claimed[si]=true;
  const rub=[10000,12000,14000,16000,18000,25000][si];tx(rub,'Полная коллекция: '+C45_SETS[si][0]);
  if(typeof quest35Init==='function'){quest35Init();s.quest35.xp+=100+si*30}
@@ -1136,7 +1160,7 @@ function c45Page(){const g=Math.max(0,Math.min(5,Number(c45.group)||0));const to
  const rarity=x.id%10>=9?'legend':x.id%10>=7?'epic':x.id%10>=5?'rare':'';
  return `<div class="c45-card ${rarity}">${c45Draw(x)}<b>${x.name}</b><small>${x.rarity}${c45.owned[x.id]>1?' · ×'+c45.owned[x.id]:''}</small></div>`}).join('');
  const complete=c45Progress(g)===10;
- return box('◇ Коллекции',`<div class="c45-top"><div><b>Открыто ${total} из 60</b><p class="c45-toast">Закрытые карточки полностью засекречены: названия, рисунки и редкость неизвестны до выпадения.</p></div><div><b>Жетоны: ${c45.tokens}</b></div></div><div class="c45-meter"><i style="width:${Math.round(total/60*100)}%"></i></div><div class="c45-groups">${buttons}</div><div class="c45-grid">${cards}</div><p class="c45-toast">Карточки случайно выпадают при приёмке и выдаче заказов. Редкие встречаются реже. Дубликаты дают жетоны. Альбом общий для всех ПВЗ.</p><p>${c45.claimed[g]?'✓ Награда за набор получена':complete?`<button class="primary" onclick="c45ClaimSet(${g})">Забрать награду за полный набор</button>`:'Соберите все 10 карточек набора, чтобы получить деньги, XP и жетоны.'}</p><button ${c45.tokens<50?'disabled':''} onclick="c45Trade()">Обменять 50 жетонов на 3 000 ₽</button>`)
+ return box('◇ Коллекции',`<div class="c45-top"><div><b>Открыто ${total} из 60</b><p class="c45-toast">Закрытые карточки полностью засекречены: названия, рисунки и редкость неизвестны до выпадения.</p></div><div><b>Жетоны: ${c45.tokens}</b></div></div><div class="c45-meter"><i style="width:${Math.round(total/60*100)}%"></i></div><div class="c45-groups">${buttons}</div><div class="c45-grid">${cards}</div><p class="c45-toast">Карточки выпадают за обработанные заказы; не реже одного выпадения на 40 заказов. Редкие встречаются реже. Дубликаты дают жетоны. Альбом общий для всех ПВЗ.</p><p>${c45.claimed[g]?'✓ Награда за набор получена':complete?`<button class="primary" onclick="c45ClaimSet(${g})">Забрать награду за полный набор</button>`:'Соберите все 10 карточек набора, чтобы получить деньги, XP и жетоны.'}</p><button ${c45.tokens<50?'disabled':''} onclick="c45Trade()">Обменять 50 жетонов на 3 000 ₽</button>`)
 }
 const c45OldRender=render;
 render=function(){c45OldRender();const nav=document.getElementById('tabs');if(nav&&!nav.querySelector('[data-collection45]'))nav.insertAdjacentHTML('beforeend',`<button data-collection45 class="${tab==='Коллекции'?'active':''}" onclick="tab='Коллекции';render()">◇ Коллекции</button>`);if(tab==='Коллекции')document.getElementById('content').innerHTML=c45Page();if(c45.pending.length)c45Show()};
