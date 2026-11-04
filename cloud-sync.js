@@ -9,7 +9,7 @@ const tg=window.Telegram&&window.Telegram.WebApp;
 const auth=tg&&tg.initData||'';
 const uid=String(tg&&tg.initDataUnsafe&&tg.initDataUnsafe.user&&tg.initDataUnsafe.user.id||'');
 const metaKey='wbcloud-meta-'+uid;
-const writerId=crypto.randomUUID();
+const writerId=typeof crypto.randomUUID==='function'?crypto.randomUUID():(()=>{const a=crypto.getRandomValues(new Uint8Array(16));a[6]=(a[6]&15)|64;a[8]=(a[8]&63)|128;const h=Array.from(a,b=>b.toString(16).padStart(2,'0')).join('');return h.slice(0,8)+'-'+h.slice(8,12)+'-'+h.slice(12,16)+'-'+h.slice(16,20)+'-'+h.slice(20)})();
 let revision=0,meta={},ready=false,busy=false,running=false,paused=true,blocked=false,lastSnapshot='',status='Подключаем облако…';
 let overlay;
 const interval=window.setInterval.bind(window);
