@@ -3058,5 +3058,92 @@ render=function(){
 sync();render();
 
 </script>
+
+<style>
+/* v2.11 — standalone notifications, no navigation or cloud schema changes */
+.n211-shade{position:fixed;inset:0;z-index:100050;background:rgba(17,17,20,.55);display:flex;align-items:center;justify-content:center;padding:16px}
+.n211-panel{background:#fff;color:#25212a;border-radius:18px;width:min(440px,100%);max-height:min(82dvh,740px);display:flex;flex-direction:column;box-shadow:0 20px 65px #0003;overflow:hidden}
+.n211-head{display:flex;justify-content:space-between;align-items:center;padding:17px 18px;border-bottom:1px solid #eee;gap:10px}
+.n211-head h2{margin:0;font-size:17px}
+.n211-close{border:0;background:transparent;font-size:22px;line-height:1;min-width:38px;min-height:38px}
+.n211-content{padding:16px 18px;overflow:auto;overscroll-behavior:contain;white-space:normal;line-height:1.5}
+.n211-item{width:100%;display:block;text-align:left;border:1px solid #e6e3e8;border-radius:11px;margin:0 0 9px;padding:12px;background:white;color:inherit}
+.n211-item[data-unread="true"]{border-left:4px solid #343039;background:#faf9fa}
+.n211-item small{display:block;color:#777;margin-top:5px}
+.n211-actions{padding:12px 18px 18px;display:flex;gap:9px;flex-wrap:wrap;border-top:1px solid #eee}
+.n211-actions button{flex:1;min-width:120px}
+.n211-message{white-space:pre-wrap;overflow-wrap:anywhere;margin:10px 0}
+body.n211-locked{overflow:hidden}
+@media(max-width:450px){.n211-shade{align-items:flex-end;padding:0}.n211-panel{width:100%;max-height:85dvh;border-radius:18px 18px 0 0;padding-bottom:env(safe-area-inset-bottom)}}
+</style>
+<script type="application/x-wbpvz">
+// v2.11: UI-only notification inbox and detail. The existing per-PVZ data stays untouched.
+let n211Mode=null,n211Id=null,n211Branch=null,n211Queue=[],n211Active=false;
+function n211Key(){return (typeof pvz34!=='undefined'&&pvz34.branches)?pvz34.active:0}
+function n211Items(){notificationInit();return s.notifications||[]}
+function n211Close(){n211Mode=null;n211Id=null;n211Branch=null;document.getElementById('n211-overlay')?.remove();document.body.classList.remove('n211-locked');if(n211Queue.length){const next=n211Queue.shift();if(next.branch===n211Key())n211Detail(next.id);}}
+function n211Show(mode,id){
+ n211Mode=mode;n211Id=id||null;n211Branch=n211Key();
+ let shade=document.getElementById('n211-overlay');
+ if(!shade){shade=document.createElement('div');shade.id='n211-overlay';shade.className='n211-shade';shade.addEventListener('click',e=>{if(e.target===shade)n211Close()});document.body.appendChild(shade)}
+ document.body.classList.add('n211-locked');
+ const item=id?n211Items().find(n=>n.id===id):null;
+ if(mode==='detail'&&!item){n211Close();return}
+ const title=mode==='inbox'?'Уведомления':item.title;
+ const content=mode==='inbox'?
+   (n211Items().length?n211Items().slice(0,100).map(n=>'<button class="n211-item" data-unread="'+(!n.read)+'" onclick="n211Detail('+JSON.stringify(n.id).replace(/"/g,'&quot;')+')"><b>'+notificationEscape(n.title)+'</b><small>'+notificationEscape(n.message)+'</small></button>').join(''):'<p>Уведомлений пока нет.</p>'):
+   '<div class="notification-meta">'+notificationEscape(stamp(item.at))+' · игровое время</div><p class="n211-message">'+notificationEscape(item.message)+'</p>';
+ const buttons=mode==='inbox'?
+   '<button onclick="n211MarkAll()">Прочитать все</button><button class="primary" onclick="n211Close()">Закрыть</button>':
+   '<button onclick="n211Inbox()">К списку</button><button class="primary" onclick="n211Go()">Перейти: '+notificationEscape(notificationDestination(item))+'</button>';
+ shade.innerHTML='<section class="n211-panel" role="dialog" aria-modal="true" aria-label="'+notificationEscape(title)+'"><div class="n211-head"><h2>'+notificationEscape(title)+'</h2><button class="n211-close" onclick="n211Close()" aria-label="Закрыть">×</button></div><div class="n211-content">'+content+'</div><div class="n211-actions">'+buttons+'</div></section>';
+ shade.querySelector('.n211-close')?.focus({preventScroll:true});
+}
+function n211Inbox(){n211Show('inbox')}
+function n211Detail(id){
+ const n=n211Items().find(x=>x.id===id);if(!n)return;
+ n.read=true;save();n211Show('detail',id);
+ const badge=document.getElementById('bell-count'),count=n211Items().filter(x=>!x.read).length;
+ if(badge){badge.hidden=!count;badge.textContent=count>99?'99+':count}
+}
+function n211MarkAll(){notificationReadAll();n211Inbox()}
+function n211Go(){
+ const n=n211Items().find(x=>x.id===n211Id);if(!n)return n211Close();
+ const target=notificationDestination(n);n211Queue=[];n211Mode=null;
+ document.getElementById('n211-overlay')?.remove();document.body.classList.remove('n211-locked');
+ tab=target;save();render();window.scrollTo(0,0);
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&n211Mode)n211Close()});
+// Existing event scanning remains authoritative; do not replay old unread messages on login.
+const n211OriginalAdd=notificationAdd;
+notificationAdd=function(type,title,message,key,at){
+ const before=n211Items().length;
+ const result=n211OriginalAdd.apply(this,arguments);
+ if(n211Active&&n211Items().length>before&&['incident','audit'].includes(type)){
+  const id=n211Items()[0]?.id;
+  if(id&&!n211Queue.some(x=>x.id===id)&&n211Queue.length<4){
+   n211Queue.push({id,branch:n211Key()});
+  }
+ }
+ return result;
+};
+const n211OldOpen=notificationOpen;
+notificationOpen=function(id){n211Detail(id)};
+const n211OldRender=render;
+render=function(){
+ const result=n211OldRender.apply(this,arguments);
+ const bell=document.getElementById('notification-bell');
+ if(bell){bell.onclick=n211Inbox;bell.setAttribute('aria-label','Открыть всплывающие уведомления')}
+ // A modal must survive the frequent full-page render cycle.
+ if(n211Mode&&n211Branch!==n211Key())n211Close();
+ if(n211Active&&!n211Mode&&n211Queue.length){
+  const next=n211Queue.shift();
+  if(next.branch===n211Key())n211Detail(next.id);
+ }
+ return result;
+};
+n211Active=true;
+render();
+</script>
 </body></html>
 <!-- v1.77: one employee per PVZ shift, streamlined dashboard -->
