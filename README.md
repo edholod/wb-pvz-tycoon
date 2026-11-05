@@ -1,3 +1,15 @@
+# WB PVZ TYCOON — v2.12
+
+Telegram Mini App: https://edholod.github.io/wb-pvz-tycoon/
+
+Browser entry: `index.html`; `cloud-sync.js` restores Telegram-authenticated cloud state before boot. Edit `modules/release212.js`, `.css` and `storage-codec.js`, then run `python3 build-release.py`. Keep all ten cloud keys, revision/writer checks and existing saves.
+
+Release notes and verification: `release/STATUS_v2.12_CANDIDATE.txt`. Supabase migration and Edge Function sources are under `supabase/`; deployment secrets are environment variables only. Run the Node scripts under `validation/` and `python3 -m unittest discover -q` before release.
+
+The historical Python prototype documentation follows; it does not describe the current browser engine.
+
+---
+
 # WB PVZ TYCOON — прототип экономики
 
 - `economy.json`: базовые настройки экономики, склада, отзывов и персонала.
