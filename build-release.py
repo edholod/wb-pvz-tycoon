@@ -3,7 +3,7 @@ from pathlib import Path
 p=Path(__file__).parent
 html=(p/'index.html').read_text()
 a='<!-- BEGIN RELEASE212 -->';b='<!-- END RELEASE212 -->'
-if a in html:html=html[:html.index(a)]+html[html.index(b)+len(b):]
+if a in html:html=html[:html.index(a)].rstrip()+'\n'+html[html.index(b)+len(b):].lstrip('\n')
 module=(p/'modules/release212.js').read_text();css=(p/'modules/release212.css').read_text()
 block=a+'\n<style>\n'+css+'\n</style>\n<script type="application/x-wbpvz">\n'+module+'\n</script>\n'+b
 html=html.replace('</body></html>',block+'\n</body></html>')
