@@ -1,0 +1,10 @@
+const assert=require('assert/strict'),engine=require('./engine.cjs');const c=engine(__dirname+'/../index.html');
+c.run(`s.opened=true;s.pvzNumber='STORAGE-TEST';s.capacity=20000;s.goodsLedger={};s.goodsSerial=0;s.stock=0;init210();live31Arrive(1440,10000);const ledgerBeforeStorage212=JSON.stringify(s.goodsLedger);pvz34={active:0,branches:[{state:structuredClone(s),manager:false}]};save();pvz34Store();`);
+assert(c.run(`JSON.parse(wbCloudRawRead('wbpvz-demo-v18')).goodsLedger.__wbLedger212.length>0`));assert(c.run(`JSON.stringify(JSON.parse(localStorage.getItem('wbpvz-demo-v18')).goodsLedger)===ledgerBeforeStorage212`));
+c.run(`for(let i=1;i<12;i++){const branch=structuredClone(s);branch.pvzNumber='STORAGE-'+i;pvz34.branches.push({state:branch,manager:false})}`);
+const result=c.run(`(()=>{const data=wbCloudSnapshot();return {cloudCharacters:JSON.stringify(data).length,goodsPerBranch:10000,branches:pvz34.branches.length}})()`);assert(result.cloudCharacters<4000000,JSON.stringify(result));
+const diskBytes=[...c.storage.entries()].reduce((n,[k,v])=>n+2*(k.length+v.length),0);assert(diskBytes<5*1024*1024,"Local quota "+diskBytes);result.localUtf16Bytes=diskBytes;
+assert(c.run(`JSON.parse(localStorage.getItem(PVZ34_KEY)).branches.every(b=>JSON.stringify(b.state.goodsLedger)===ledgerBeforeStorage212)`));
+assert(c.run(`(()=>{const raw=JSON.parse(wbCloudRawRead('wbpvz-demo-v18'));raw.goodsLedger.lengths[0]++;try{wbStorageCodec212.unpack('wbpvz-demo-v18',JSON.stringify(raw));return false}catch{return true}})()`));
+const vm=require('vm'),fs=require('fs'),server={Deno:{serve(){},env:{get(){}}}};vm.createContext(server);new vm.Script(require('module').stripTypeScriptTypes(fs.readFileSync(__dirname+'/../supabase/functions/game-leaderboard/index.ts','utf8').replace(/^import.*;$/m,''))).runInContext(server);assert(server.validCloudPayload(c.run('wbCloudSnapshot()')));
+console.log('PASS: exact ledger/barcode/time/history roundtrip, corrupt data rejected, 12 branches ×10000 goods:',JSON.stringify(result));

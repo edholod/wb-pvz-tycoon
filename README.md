@@ -1,9 +1,10 @@
-# WB PVZ TYCOON — v2.12 candidate (not published)
+# WB PVZ TYCOON — v2.12
 
-Work in progress based on commit `470415b`. The live site has not been changed by this checkout.
-Read [release status](release/STATUS_v2.12_CANDIDATE.txt) before deployment. SQL migration, live Supabase verification, Telegram/device tests and long-run balance review remain required.
+Telegram Mini App: https://edholod.github.io/wb-pvz-tycoon/
 
-The browser game is `index.html`, launched by `cloud-sync.js` after cloud restore. Edit `modules/release212.js` and `.css`, then run `python3 build-release.py` to embed the module. Do not reset saves or alter the ten-key cloud envelope.
+Browser entry: `index.html`; `cloud-sync.js` restores Telegram-authenticated cloud state before boot. Edit `modules/release212.js`, `.css` and `storage-codec.js`, then run `python3 build-release.py`. Keep all ten cloud keys, revision/writer checks and existing saves.
+
+Release notes and verification: `release/STATUS_v2.12_CANDIDATE.txt`. Supabase migration and Edge Function sources are under `supabase/`; deployment secrets are environment variables only. Run the Node scripts under `validation/` and `python3 -m unittest discover -q` before release.
 
 The historical Python prototype documentation follows; it does not describe the current browser engine.
 

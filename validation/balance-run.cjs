@@ -1,0 +1,10 @@
+const fs=require('fs'),engine=require('./engine.cjs');
+const c=engine(__dirname+'/../index.html');
+c.run(`s=fresh();s.opened=true;s.balance=10000000;s.pvzNumber='SYNTHETIC';s.pvzAddress='Synthetic scenario';s.gameMinute=540;s.lastReal=Date.now();s.live31Last=540;s.staff=[{...candidates()[0],skill:100,offset:0},{...candidates()[1],skill:100,offset:2}];live31Init();ledgerInit();init210();quest35Init();s.quest35.xp=quest35LevelXP(43);for(const id of Object.keys(EQUIPMENT210)){s.equipment[id]=3;s.equipRecords||={};s.equipRecords[id]={bought:s.gameMinute,level:3,broken:false,purchasePrice:1}}s.capacity=2000;delete s.equipment210;init210();branch212().auto.enabled=true;for(const p of PARTNERS210)s.partners210.connected[p.id]=true;pvz34={active:0,branches:[{state:structuredClone(s),manager:false}]};let seedBalance212=123456;Math.random=()=>{seedBalance212=(Math.imul(seedBalance212,1664525)+1013904223)>>>0;return seedBalance212/4294967296};`);
+const snapshots=[],occupancy=[];
+for(let day=1;day<=90;day++){
+ c.run(`for(let h=0;h<24;h++){const target=s.gameMinute+60;tickHour();for(let at=target-55;at<=target;at+=5)live31Minute(at);if(s.cleanliness<80&&s.live32.supplies.cleaner>0&&s.live32.supplies.wipes>=2)clean210();}if(!Number.isFinite(s.balance)||s.stock<0||s.stock>s.capacity||s.stock!==Object.values(s.goodsLedger).filter(g=>g.status==='stock').length)throw Error('Invalid economy state');`);
+ const row=c.run(`({day:${day},balance:Math.round(s.balance),stock:s.stock,capacity:s.capacity,occupancy:s.stock/s.capacity,happiness:happy210(),xp:s.quest35.xp,level:game180Level(s.quest35.xp),turnover:s.turnover,goods:Object.keys(s.goodsLedger).length})`);occupancy.push(row.occupancy);
+ if([30,60,90].includes(day)){snapshots.push({...row,meanOccupancyLast14:occupancy.slice(-14).reduce((a,b)=>a+b,0)/14});console.log(JSON.stringify(snapshots.at(-1)))}
+}
+fs.writeFileSync(__dirname+'/../release/BALANCE_RUN.json',JSON.stringify({scenario:'Synthetic level43 / 2000 capacity / all equipment lv3 / all 9 partners / auto supplies / maintained cleanliness; real-time risk gates not time-accelerated',snapshots},null,2));

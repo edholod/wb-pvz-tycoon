@@ -12,5 +12,5 @@ html=html.replace('</body></html>',block+'\n</body></html>')
 cloud=(p/'cloud-sync.js').read_text()
 start='/* BEGIN STORAGE212 */';end='/* END STORAGE212 */'
 if start in cloud:cloud=cloud[cloud.index(end)+len(end):].lstrip('\n')
-codec=start+'\n'+(p/'vendor/lz-string-1.5.0.min.js').read_text()+'\n'+(p/'modules/storage-codec.js').read_text()+'\n'+end+'\n'
+codec=start+'\n'+(p/'vendor/lz-string-1.5.0.min.js').read_text()+'\n'+(p/'vendor/fflate-0.8.2.js').read_text()+'\n'+(p/'modules/storage-codec.js').read_text()+'\n'+end+'\n'
 (p/'cloud-sync.js').write_text(codec+cloud)

@@ -1,0 +1,44 @@
+{
+  "scenario": "Synthetic level43 / 2000 capacity / all equipment lv3 / all 9 partners / auto supplies / maintained cleanliness; real-time risk gates not time-accelerated",
+  "snapshots": [
+    {
+      "day": 30,
+      "balance": 10540120,
+      "stock": 1180,
+      "capacity": 2000,
+      "occupancy": 0.59,
+      "happiness": 100,
+      "xp": 736919,
+      "level": 234,
+      "turnover": 9370561,
+      "goods": 4639,
+      "meanOccupancyLast14": 0.5968214285714286
+    },
+    {
+      "day": 60,
+      "balance": 11182224,
+      "stock": 1170,
+      "capacity": 2000,
+      "occupancy": 0.585,
+      "happiness": 100,
+      "xp": 1571139,
+      "level": 346,
+      "turnover": 22095578,
+      "goods": 9272,
+      "meanOccupancyLast14": 0.5866071428571428
+    },
+    {
+      "day": 90,
+      "balance": 11769697,
+      "stock": 1175,
+      "capacity": 2000,
+      "occupancy": 0.5875,
+      "happiness": 100,
+      "xp": 2375449,
+      "level": 427,
+      "turnover": 31784153,
+      "goods": 11746,
+      "meanOccupancyLast14": 0.5741785714285713
+    }
+  ]
+}
