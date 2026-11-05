@@ -52,7 +52,7 @@ supabase/functions/game-leaderboard/index.ts — источник разверн
 Публичный RPC service-role-only, UUID вместо Telegram ID, closed по умолчанию. Поиск читает актуальные сохранения и серверную приватность, а не только top100.
 
 ПРОВЕРЕНО
-Все семь Node тестовых скриптов test-storage-v212, test-v212, test-v210, test-cloud, test-server, test-profiles-v212 и 34 Python unittest прошли (Node файлов шесть; balance-run отдельно). git diff --check без ошибок.
+Все шесть Node тестовых скриптов test-storage-v212, test-v212, test-v210, test-cloud, test-server, test-profiles-v212 и 34 Python unittest прошли (balance-run отдельно). git diff --check без ошибок.
 12 ПВЗ по 10000 товаров: точный roundtrip всех полей; облако 3663638 символов, localStorage 2989450 UTF16 bytes. Повреждение данных отклоняется. Квота проверяется откатом покупки.
 7 игровых дней прежнего движка, две ветки, общий баланс, сохранённые отзывы/оборудование. Новые таймеры, штрафы/XP/автозакупка, повтор наград и партнёров, миллион классификаций roulette; отдельный random seed — 96 партнёров на 1 млн спинов при ожидании 100.
 Синтетическая экономика одного развитого ПВЗ на 30/60/90 дней: склад 59/58.5/58.75% ёмкости, последние14 дней в среднем 59.68/58.66/57.42%. Не обещание того же результата для любых настроек.
@@ -84,4 +84,3 @@ node validation/test-cloud.cjs
 node validation/test-server.cjs
 node validation/test-profiles-v212.cjs
 python3 -m unittest discover -q
-
