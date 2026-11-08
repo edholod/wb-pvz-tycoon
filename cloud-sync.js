@@ -18,7 +18,38 @@ var LZString=function(){var r=String.fromCharCode,o="ABCDEFGHIJKLMNOPQRSTUVWXYZa
  function compress(raw){let item=cache.get(raw);if(!item){const bytes=fflate.gzipSync(fflate.strToU8(raw),{level:6,mtime:0});item={disk:utf16(bytes),cloud:base64(bytes),size:bytes.length,checksum:checksum(raw)};cache.set(raw,item);if(cache.size>1024)cache.delete(cache.keys().next().value)}return item}
  function stateUnpack(state){const ledger=state?.goodsLedger;if(!ledger||!ledger.__wbLedger212)return;const chunks=typeof ledger.__wbLedger212==='string'?[ledger.__wbLedger212]:ledger.__wbLedger212,lengths=ledger.lengths||[ledger.originalLength];if(!Array.isArray(chunks)||chunks.length!==lengths.length)throw Error('Некорректная история товаров');const result={};for(let i=0;i<chunks.length;i++){let raw;if(ledger.encoding==='gzip'||ledger.encoding==='gzip-u16'){const bytes=ledger.encoding==='gzip'?unbase64(chunks[i]):unutf16(chunks[i],ledger.byteLengths[i]);raw=fflate.strFromU8(fflate.gunzipSync(bytes))}else raw=LZString.decompressFromBase64(chunks[i]);if(typeof raw!=='string'||raw.length!==lengths[i]||ledger.hashes&&checksum(raw)!==ledger.hashes[i])throw Error('История товаров повреждена. Облачная копия не изменена.');const data=JSON.parse(raw);if(!data||Array.isArray(data)||typeof data!=='object')throw Error('Некорректная история товаров');for(const [key,value] of Object.entries(data))Object.defineProperty(result,key,{value,enumerable:true,writable:true,configurable:true})}state.goodsLedger=result}
  function statePack(state,cloud){let ledger=state?.goodsLedger;if(!ledger||typeof ledger!=='object')return;if(ledger.__wbLedger212){if(cloud&&ledger.encoding==='gzip-u16'){ledger.__wbLedger212=ledger.__wbLedger212.map((s,i)=>base64(unutf16(s,ledger.byteLengths[i])));ledger.encoding='gzip'}else if(!cloud&&ledger.encoding==='gzip'){const sizes=[];ledger.__wbLedger212=ledger.__wbLedger212.map(s=>{const bytes=unbase64(s);sizes.push(bytes.length);return utf16(bytes)});ledger.encoding='gzip-u16';ledger.byteLengths=sizes}else if(!['gzip','gzip-u16'].includes(ledger.encoding)){stateUnpack(state);statePack(state,cloud)}return}const entries=Object.entries(ledger);if(entries.length<8)return;const chunks=[],lengths=[],sizes=[],hashes=[];for(let i=0;i<entries.length;i+=128){const raw=JSON.stringify(Object.fromEntries(entries.slice(i,i+128))),packed=compress(raw);chunks.push(cloud?packed.cloud:packed.disk);lengths.push(raw.length);sizes.push(packed.size);hashes.push(packed.checksum)}state.goodsLedger={__wbLedger212:chunks,encoding:cloud?'gzip':'gzip-u16',lengths,byteLengths:sizes,hashes}}
- function transform(key,value,mode){if(value===null||!['wbpvz-demo-v18','wbpvz-portfolio-v134'].includes(String(key)))return value;const data=JSON.parse(value),apply=state=>mode==='unpack'?stateUnpack(state):statePack(state,mode==='cloud');if(key==='wbpvz-demo-v18')apply(data);else if(Array.isArray(data?.branches))for(const branch of data.branches)apply(branch.state);return JSON.stringify(data)}
+ /* v2.13: Compress the entire two large save records, not only goodsLedger.
+ * The engine and cloud still receive the original JSON shape. Legacy plain JSON
+ * and earlier ledger codecs remain readable. Never discard progress on quota errors.
+ */
+ const diskPrefix='WBZ213:';
+ function decodeDisk(value){
+  if(!value.startsWith(diskPrefix))return value;
+  const separator=value.indexOf(':',diskPrefix.length);
+  const second=value.indexOf(':',separator+1);
+  if(separator<0||second<0)throw Error('Повреждён заголовок локального сохранения');
+  const size=Number(value.slice(diskPrefix.length,separator));
+  const hash=Number(value.slice(separator+1,second));
+  if(!Number.isSafeInteger(size)||size<0||size>100000000||!Number.isSafeInteger(hash))throw Error('Некорректный размер сохранения');
+  const raw=fflate.strFromU8(fflate.gunzipSync(unutf16(value.slice(second+1),size)));
+  if(checksum(raw)!==hash)throw Error('Нарушена целостность сохранения');
+  return raw;
+ }
+ function encodeDisk(value){
+  // gzip level 2 keeps large saves compact without stalling mobile WebKit.
+  const bytes=fflate.gzipSync(fflate.strToU8(value),{level:2,mtime:0});
+  const packed=diskPrefix+bytes.length+':'+checksum(value)+':'+utf16(bytes);
+  return packed.length<value.length?packed:value;
+ }
+ function transform(key,value,mode){
+  if(value===null||!['wbpvz-demo-v18','wbpvz-portfolio-v134'].includes(String(key)))return value;
+  const data=JSON.parse(decodeDisk(value));
+  const apply=state=>mode==='unpack'?stateUnpack(state):statePack(state,mode==='cloud');
+  if(key==='wbpvz-demo-v18')apply(data);
+  else if(Array.isArray(data?.branches))for(const branch of data.branches)apply(branch.state);
+  const result=JSON.stringify(data);
+  return mode==='disk'?encodeDisk(result):result;
+ }
  target.getItem=function(key){return transform(key,realGet.call(this,key),'unpack')};
  target.setItem=function(key,value){return realSet.call(this,key,transform(key,String(value),'disk'))};
  window.wbStorageCodec212={pack:(key,value)=>transform(key,value,'cloud'),unpack:(key,value)=>transform(key,value,'unpack')};
